@@ -246,7 +246,7 @@ public class DetailCollector {
 //            throw new IOException("scraped data is not sufficient");
 //        }
         ArrayList<String> fileNames = storeImage(urls, productId);
-        String mainImage = fileNames.get(0);
+        String mainImage = fileNames.remove(0);
         String complementaryIamges = String.join(",", fileNames);
         String imQuery = "UPDATE PRODUCT " +
                 "SET MAIN_IM = '" + mainImage + "', " +
@@ -279,7 +279,7 @@ public class DetailCollector {
     private ArrayList<String> storeImage(ArrayList<String> imageUrls, int productId){
         final String imageStoragePath = "C:/Users/shw52/Pictures/CostcoImage/";
         ArrayList<String> fileNames = new ArrayList<>();
-        for (int i = 0 ; i < imageUrls.size() ; i++) {
+        for (int i = 0 ; i < imageUrls.size()||i<9 ; i++) {
             String imageUrl = imageUrls.get(i);
             String extension =imageUrl.substring(imageUrl.lastIndexOf(".") + 1);
             String fileName = productId + "-" + i + "." + extension;
