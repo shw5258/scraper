@@ -43,7 +43,7 @@ public class CatCollector implements BatchWorker.Writer <Category>{
     @Override
     public void writeSql(ArrayList<Category> batchData, Statement stmt) throws SQLException {
         for (Category section: batchData) {
-            stmt.addBatch("INSERT INTO CATEGORY VALUES (" +
+            stmt.addBatch("INSERT IGNORE INTO CATEGORY VALUES (" +
 //                System.out.println("INSERT INTO CATEGORY VALUES (" +
                             section.large + "," +
                             section.medium + "," +

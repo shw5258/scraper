@@ -67,7 +67,7 @@ public class ProdNumCollector implements BatchWorker.Writer<Product>{
     @Override
     public void writeSql(ArrayList<Product> batchData, Statement stmt) throws SQLException {
         for (Product product: batchData) {
-            stmt.addBatch("INSERT INTO PRODUCT (PROD_ID, CAT_LARGE, CAT_MEDIUM, CAT_SMALL) VALUES (" +
+            stmt.addBatch("INSERT IGNORE INTO PRODUCT (PROD_ID, CAT_LARGE, CAT_MEDIUM, CAT_SMALL) VALUES (" +
 //            System.out.println("INSERT INTO PRODUCT (PROD_ID, CAT_LARGE, CAT_MEDIUM, CAT_SMALL) VALUES (" +
                     product.id + "," +
                     product.category.large + "," +
