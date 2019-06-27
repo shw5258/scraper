@@ -25,9 +25,13 @@ public class NaverProduct {
     int changeFee = 10000;
     String setupFee = "N";
     String storeZzim = "N";
+    String radioType = "";
+    String radioKey = "";
+    String radioVal = "";
+    boolean variants;
 
-    public NaverProduct(int naverCategory, String name, int price, String mainImage,
-                        String complementaryImage, String detail, int sellerProductCode) {
+    public NaverProduct(int naverCategory, boolean variants, String name, int price, String mainImage,
+                        String complementaryImage, String detail, int sellerProductCode, String radioKey, String radioVal) {
         this.naverCategory = naverCategory;
         this.name = name;
         this.price = price;
@@ -35,6 +39,11 @@ public class NaverProduct {
         this.complementaryImage = complementaryImage;
         this. detail = detail;
         this.sellerProductCode = sellerProductCode;
+        this.radioKey = radioKey;
+        this.radioVal = radioVal;
+        if (variants) {
+            this.radioType = "단독형";
+        }
     }
 
 }

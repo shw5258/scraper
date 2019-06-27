@@ -22,18 +22,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
-public class DetailCollector {
+public class DetailCollectorCopy {
     protected final static String BASE = "https://www.costco.co.kr";
 
+    public static void main(String[] args) {
+        new DetailCollectorCopy().collect();
+    }
+
     public void collect() {
-        String resetSoldout = "update product set soldout = false, changed = false";
+        String resetSoldout = "update product set soldout = false, changed = false, present = true";
         String query = "select prod_id from product where " +
-                "name is null and " +
-                "soldout is false and " +
-                "variants is false and " +
-                "another_form is false and " +
-                "present is true and " +
-                "must_call is false ";
+                "another_form is false and must_call is false and present is true and main_im is null";
+//                "variants is true and (main_im is null or comple_im is null) and another_form is false";
+//                "variants is true and prod_id = 622020";
+//                "variants = true and another_form = false and radio_key is null";
 //        query = "select prod_id from product where prod_id in (622236,623066)";
 //        String query = "select prod_id from product where main_im is null";
 //        query = "select prod_id from product where prod_id = 620159";
@@ -75,12 +77,14 @@ public class DetailCollector {
                 query = "UPDATE PRODUCT SET SOLDOUT = TRUE WHERE PROD_ID=" + productId;
                 con.createStatement().executeUpdate(query);
                 System.out.println("sold out");
-            }else if(doc.select(".variant-list").size() != 0){
+
+            }else if(doc.select(".variant-section").size() != 0){
                 query = "UPDATE PRODUCT SET VARIANTS = TRUE WHERE PROD_ID=" + productId;
                 con.createStatement().executeUpdate(query);
                 System.out.println("variant");
+//                parsingAndStoringForVariant(doc, con, productId);
             }else{
-                parsingAndStoring(doc, con, productId);
+                parsingAndStoring(doc, con, productId, "","");
             }
         } catch (SQLException | IOException | AnotherFormException | NullPointerException e) {
             if (e.getClass() == HttpStatusException.class || e.getClass() == UnknownHostException.class) {
@@ -107,7 +111,71 @@ public class DetailCollector {
         }
     }
 
-    private void parsingAndStoring(Document doc, Connection connection, int productId)
+    private void parsingAndStoringForVariant(Document doc, Connection con, int productId)
+            throws SQLException, IOException, AnotherFormException{
+        Elements radioEls = doc.select("option[value]");
+        Elements variantEls = doc.select(".colorVariant");
+        ArrayList<String> colorArray = new ArrayList<>();
+        ArrayList<String> radioArray = new ArrayList<>();
+
+        if (radioEls.size() != 0) {
+            for (Element radioEl : radioEls) {
+                radioArray.add(radioEl.text().trim());
+            }
+
+        }else{
+            for (int i = 0; i < variantEls.size(); i++) {
+                String label = variantEls.get(i).attr("aria-label");
+                String colorName;
+                if (label.contains("-")) {
+                    colorName = label.split("-")[1];
+                }else{
+                    colorName = label;
+                }
+                if (i == 0) {
+                    String relativePath = variantEls.get(i).attr("href");
+                    Document deepDoc = Jsoup.connect(BASE + relativePath).get();
+                    radioEls = deepDoc.select("option[value]");
+
+                    if (radioEls.size() != 0) {
+                        for (Element radioEl : radioEls) {
+//                            radioArray.add(radioEl.text().trim());
+//                            radioArray.add(radioEl.text().substring(3).trim());
+                            radioArray.add(radioEl.text().substring(colorName.length() + 2).trim());
+//                            radioArray.add(radioEl.text().substring("스카이".length() + 2).trim());
+                        }
+
+                    }
+                }
+                colorArray.add(colorName);
+            }
+
+        }
+//        String relativePath = variantEls.get(0).attr("href");
+        String colorJoin = String.join(",", colorArray);
+        String radioJoin = String.join(",", radioArray);
+//        System.out.println(colorJoin + "/" + radioJoin + ":" + BASE + relativePath);
+        //colorJoin과 radioJoin을 미리 파싱하여 아래의 일반용 메서드에서 일반상품에 대하여 매번 점검할 필요가 없게 하자
+        String radioKey = "";
+        String radioVal = "";
+        if (!colorJoin.isEmpty() && !radioJoin.isEmpty()) {
+            radioKey = "색상\r\n종류";
+            radioVal = colorJoin + "\r\n" + radioJoin;
+        } else if (!colorJoin.isEmpty()) {
+            radioKey = "색상";
+            radioVal = colorJoin;
+        } else if (!radioJoin.isEmpty()) {
+            radioKey = "선택";
+            radioVal = radioJoin;
+        }
+        System.out.println("========================");
+        System.out.println(radioKey);
+        System.out.println(radioVal);
+        System.out.println("========================");
+        parsingAndStoring(doc, con, productId, radioKey, radioVal);
+    }
+
+    private void parsingAndStoring(Document doc, Connection connection, int productId, String radioKey, String radioVal)
             throws SQLException, IOException, AnotherFormException {
         Elements nameEl = doc.select(".product-name");
         Elements imagEl = doc.select(".lazyOwl");
@@ -238,7 +306,9 @@ public class DetailCollector {
                     "SET NAME = '" + name + "'," +
                     "PRICE = " + price + "," +
                     "CAT_NAVER = " + naverCategory + "," +
-                    "DETAIL = '" + detail + "', " +
+                    "DETAIL = '" + detail + "'," +
+                    "RADIO_KEY = '" + radioKey + "'," +
+                    "RADIO_VAL = '" + radioVal + "'," +
                     "CHANGED = TRUE " +
                     "WHERE PROD_ID =" + productId;
             connection.createStatement().executeUpdate(query);

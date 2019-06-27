@@ -11,11 +11,6 @@ import java.util.ArrayList;
 
 public class CatCollector implements BatchWorker.Writer <Category>{
     public void collect() {
-//        try {
-//            viewTable(MyDataSourceFactory.getMySQLDataSource().getConnection());
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
         try {
             Document doc = Jsoup.connect("https://www.costco.co.kr").get();
             String cssQuery = "a[href~=/c/cos_\\d*\\.\\d*\\.\\d*$]";

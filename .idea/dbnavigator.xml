@@ -2,21 +2,21 @@
 <project version="4">
   <component name="DBNavigator.Project.DataEditorManager">
     <record-view-column-sorting-type value="BY_INDEX" />
-    <value-preview-text-wrapping value="true" />
+    <value-preview-text-wrapping value="false" />
     <value-preview-pinned value="false" />
   </component>
   <component name="DBNavigator.Project.DataExportManager">
     <export-instructions>
       <create-header value="true" />
-      <quote-values-containing-separator value="true" />
+      <quote-values-containing-separator value="false" />
       <quote-all-values value="false" />
       <value-separator value="" />
-      <file-name value="" />
-      <file-location value="" />
+      <file-name value="PRODUCT.html" />
+      <file-location value="C:\Users\light\Documents" />
       <scope value="GLOBAL" />
       <destination value="FILE" />
-      <format value="EXCEL" />
-      <charset value="windows-1252" />
+      <format value="HTML" />
+      <charset value="UTF-8" />
     </export-instructions>
   </component>
   <component name="DBNavigator.Project.DatabaseBrowserManager">
@@ -25,11 +25,8 @@
     <show-object-properties value="true" />
     <loaded-nodes>
       <connection connection-id="dd93dcca-1468-4b05-b46b-0c9a6b137952">
-        <schema name="information_schema" object-types="table, function, view, procedure" />
-        <schema name="mysql" object-types="table, function, view, procedure" />
-        <schema name="performance_schema" object-types="table, function, view, procedure" />
-        <schema name="scraped" object-types="table, function, column, view, constraint, index, procedure, dataset trigger" />
-        <schema name="sys" object-types="table, function, column, view, constraint, procedure, dataset trigger" />
+        <schema name="scraped" object-types="function, view, column, table" />
+        <schema name="sys" object-types="view, table" />
       </connection>
     </loaded-nodes>
   </component>
@@ -44,11 +41,20 @@
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="dd93dcca-1468-4b05-b46b-0c9a6b137952" />
   </component>
+  <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="dd93dcca-1468-4b05-b46b-0c9a6b137952" dataset="scraped.product" active-filter-id="a064ca2a-b810-4b95-86c5-74f6ac61c878">
+      <filter id="a064ca2a-b810-4b95-86c5-74f6ac61c878" name="Filter" temporary="false" custom-name="false" type="basic" join-type="AND" />
+    </filter-actions>
+    <filter-actions connection-id="dd93dcca-1468-4b05-b46b-0c9a6b137952" dataset="scraped.category" active-filter-id="631bb0be-01ac-4206-a6dd-ba6091c9e60f">
+      <filter id="631bb0be-01ac-4206-a6dd-ba6091c9e60f" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND" />
+    </filter-actions>
+  </component>
   <component name="DBNavigator.Project.EditorStateManager">
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.FileConnectionMappingManager">
     <mapping file-url="file://$PROJECT_DIR$/sql/final.sql" connection-id="dd93dcca-1468-4b05-b46b-0c9a6b137952" session-id="MAIN" current-schema="scraped" />
+    <mapping file-url="file://$PROJECT_DIR$/sql/test.sql" connection-id="dd93dcca-1468-4b05-b46b-0c9a6b137952" session-id="MAIN" current-schema="scraped" />
   </component>
   <component name="DBNavigator.Project.MethodExecutionManager">
     <method-browser />
@@ -66,7 +72,9 @@
     <filters />
   </component>
   <component name="DBNavigator.Project.ScriptExecutionManager" clear-outputs="true">
-    <recently-used-interfaces />
+    <recently-used-interfaces>
+      <mapping database-type="MYSQL" interface-id="DEFAULT" />
+    </recently-used-interfaces>
   </component>
   <component name="DBNavigator.Project.Settings">
     <connections>
@@ -83,13 +91,13 @@
           <url-type value="DATABASE" />
           <host value="localhost" />
           <port value="3306" />
-          <database value="mysql" />
+          <database value="scraped" />
           <type value="USER_PASSWORD" />
           <user value="root" />
           <deprecated-pwd value="MzY4NTQx" />
         </database>
         <properties>
-          <auto-commit value="false" />
+          <auto-commit value="true" />
         </properties>
         <ssh-settings>
           <active value="false" />
@@ -286,7 +294,6 @@
           <content-type name="SQL" enabled="true" />
           <content-type name="PL/SQL" enabled="true" />
           <content-type name="Groovy" enabled="true" />
-          <content-type name="AIDL" enabled="true" />
           <content-type name="YAML" enabled="true" />
           <content-type name="Manifest" enabled="true" />
         </content-types>
@@ -465,7 +472,7 @@
     </code-completion-settings>
     <execution-engine-settings>
       <statement-execution>
-        <fetch-block-size value="100" />
+        <fetch-block-size value="1300" />
         <execution-timeout value="20" />
         <debug-execution-timeout value="600" />
         <focus-result value="false" />

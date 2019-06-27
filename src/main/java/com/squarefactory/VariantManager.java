@@ -1,36 +1,28 @@
 package com.squarefactory;
 
-import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
-public class Manager {
-
-//    public static void main(String[] args) {
-//        new Manager().manage();
-//    }
-
-    public void manage() {
+public class VariantManager {
+    public static void main(String[] args) {
         try {
-            String resetSoldout = "update product set soldout = false";
-            String query = "select prod_id, price, name from product where " +
+            String query = "select prod_id from product where " +
                     "name is not null and " +
-                    "variants is false and " +
                     "soldout is false and " +
+                    "variants is true and " +
                     "another_form is false and " +
                     "present is true and " +
                     "must_call is false";
             Connection con = MyDataSourceFactory.getMySQLDataSource().getConnection();
             Statement stmt = con.createStatement();
-//            stmt.executeUpdate(resetSoldout);
             ResultSet rs = stmt.executeQuery(query);
             while (rs.next()) {
                 control(rs, con);
@@ -42,37 +34,31 @@ public class Manager {
 
     }
 
-    private void control(ResultSet rs, Connection con) {
+    private static void control(ResultSet rs, Connection con) {
         int productId = 0;
-        String query;
         try {
             productId = rs.getInt("prod_id");
             Document doc = Jsoup.connect(DetailCollector.BASE + "/p/" + productId).get();
             Element addToCart = doc.getElementById("addToCartForm");
             if(addToCart != null && addToCart.text().contains("품절")){
-                query = "UPDATE PRODUCT SET SOLDOUT = TRUE WHERE PROD_ID=" + productId;
+                String query = "UPDATE VARIANT SET SOLDOUT = TRUE WHERE PROD_ID=" + productId;
                 con.createStatement().executeUpdate(query);
                 System.out.println("");
                 System.out.println("sold out: " + productId);
-            }else{
+            }else if (doc.select("#variant_select-999").size() == 1){
+                ArrayList<String> radioArray = new ArrayList<>();
+                Elements radioEls = doc.select("option[value]");
+
                 updateAndShow(rs, con, productId, doc);
             }
 
         } catch (Exception e) {
-            if (e.getClass() == HttpStatusException.class || e.getClass() == UnknownHostException.class) {
-                try {
-                    con = MyDataSourceFactory.getMySQLDataSource().getConnection();
-                    query = "UPDATE PRODUCT SET PRESENT = FALSE WHERE PROD_ID=" + productId;
-                    con.createStatement().executeUpdate(query);
-                    System.out.println("not exist: " + productId);
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
+            e.printStackTrace();
+            System.out.println("Exception Product(" + productId + ")");
         }
     }
 
-    private void updateAndShow(ResultSet rs, Connection con, int productId, Document doc) throws Exception {
+    private static void updateAndShow(ResultSet rs, Connection con, int productId, Document doc) throws Exception {
         String name = doc.select(".product-name").get(0).text();
         int fromPrice = rs.getInt("price");
         Elements priceEl = doc.select("head > meta[property=product:price:amount]");
@@ -80,8 +66,6 @@ public class Manager {
         if (!name.equals(rs.getString("name"))) {
             System.out.println("");
             System.out.println("different product: " + productId);
-            updateName(con, productId, name);
-
         }else if (toPrice != rs.getInt("price")) {
             updatePrice(con, productId, toPrice);
 
@@ -95,14 +79,9 @@ public class Manager {
         }
     }
 
-    private void updateName(Connection con, int productId, String name) throws SQLException {
-        String query = "update product set name = '" + name + "' where prod_id = " + productId;
-        con.createStatement().executeUpdate(query);
-    }
-
-    private void updatePrice(Connection con, int productId, int toPrice) throws SQLException {
+    private static void updatePrice(Connection con, int productId, int toPrice) throws SQLException {
         //if the price is changed, store the price and set change true
-        String query = "update product set price = " + toPrice + " where prod_id = " + productId;
+        String query = "update product set price = " + toPrice + ", changed = true where prod_id = " + productId;
         con.createStatement().executeUpdate(query);
     }
 }

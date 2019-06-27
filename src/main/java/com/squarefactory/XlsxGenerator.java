@@ -21,24 +21,36 @@ import java.util.List;
 public class XlsxGenerator {
     private List<NaverProduct> xlsxData = new ArrayList<NaverProduct>();
     private List<String> imageArray = new ArrayList<String>();
+    //상세정보수집이 끝난후 정보가 있는 것들만 걸러냄
+    static String query1 = "select prod_id, name, price, detail, cat_naver, main_im, comple_im " +
+            "from product " +
+            "where main_im is not null";
+
+    //새로운 상품만의 그룹으로 걸러냄
+    static String query2 = "select prod_id, variants, name, price, detail, cat_naver, main_im, comple_im, radio_key, radio_val " +
+            "from product " +
+            "where changed is true and soldout is false and must_call is false and another_form is false";
+
+    //특정번호의 상품
+    static String query3 = "select prod_id, variants, name, price, detail, cat_naver, main_im, comple_im, radio_key, radio_val " +
+            "from product " +
+            "where prod_id = 614312";
+
+    //선택상품이 아닌것중에서 신상품
+    static String query4 = "select prod_id, variants, name, price, detail, cat_naver, main_im, comple_im, radio_key, radio_val " +
+            "from product " +
+            "where changed is true and soldout is false and must_call is false and another_form is false and variants is false";
 
     //전체자료 혹은 업데이트된 자료중에 하나만 선택한다
     public static void main(String[] args) {
-        //상세정보수집이 끝난후 정보가 있는 것들만 걸러냄
-        String query1 = "select prod_id, name, price, detail, cat_naver, main_im, comple_im " +
-                "from product " +
-                "where main_im is not null";
 
-        //새로운 상품만의 그룹으로 걸러냄
-        String query2 = "select prod_id, name, price, detail, cat_naver, main_im, comple_im " +
-                "from product " +
-                "where changed is true and soldout is false and variants is false and must_call is false";
 
         //전체 사진을 다시 분류하기
 //        new XlsxGenerator().Amethod(1, query1);
 
         //업데이트된 사진만 분류하기 100번대부터 시작 즉, 기존 분류사진과 격리시키겠다는 것
-        new XlsxGenerator().Amethod(100, query2);
+//        new XlsxGenerator().Amethod(100, query2);
+        new XlsxGenerator().Amethod(100, query4);
     }
 
     public void Amethod(int fileTurn, String query){
@@ -53,7 +65,7 @@ public class XlsxGenerator {
 
                 String compleImages = rs.getString("comple_im");
                 int comple = 0;
-                if (!compleImages.isEmpty()) {
+                if (compleImages != null && !compleImages.isEmpty()) {
                     comple = compleImages.split("jpg", -1).length - 1;
                 }
                 //main image plus complementary images
@@ -87,17 +99,27 @@ public class XlsxGenerator {
     }
 
     private void populateRow(ResultSet rs) throws SQLException {
-        String name = rs.getString("name");
+
+        String preName = rs.getString("name");
+        String name;
+        if (preName.contains("휴럼") || preName.contains("노발락")) {
+            name = "삭제상품";
+        }else{
+            name = preName;
+        }
         int price = rs.getInt("price");
         int naverCategory = rs.getInt("cat_naver");
         String mainImage = rs.getString("main_im");
         String complementaryImage = rs.getString("comple_im");
         String detail = rs.getString("detail");
         int sellerProductCode = rs.getInt("prod_id");
-        xlsxData.add(new NaverProduct(naverCategory, name, price, mainImage,
-                complementaryImage, detail, sellerProductCode));
+        String radioKey = rs.getString("radio_key");
+        String radioVal = rs.getString("radio_val");
+        boolean variants = rs.getBoolean("variants");
+        xlsxData.add(new NaverProduct(naverCategory, variants, name, price, mainImage,
+                complementaryImage, detail, sellerProductCode, radioKey, radioVal));
         imageArray.add(mainImage);
-        if (!complementaryImage.isEmpty()) {
+        if (complementaryImage != null && !complementaryImage.isEmpty()) {
             String[] names = complementaryImage.split(",");
             imageArray.addAll(Arrays.asList(names));
         }
@@ -153,6 +175,9 @@ public class XlsxGenerator {
             row.createCell(29).setCellValue(product.returnFee);
             row.createCell(30).setCellValue(product.changeFee);
             row.createCell(32).setCellValue(product.setupFee);
+            row.createCell(49).setCellValue(product.radioType);
+            row.createCell(50).setCellValue(product.radioKey);
+            row.createCell(51).setCellValue(product.radioVal);
             row.createCell(62).setCellValue(product.storeZzim);
         }
 
@@ -162,12 +187,17 @@ public class XlsxGenerator {
         fileOut.close();
     }
 
-    private void copyImagesToDesignatedDirectory(int turn) throws IOException {
+    private void copyImagesToDesignatedDirectory(int turn){
         new File("C:\\Users\\light\\Pictures\\UploadImage\\" + turn).mkdir();
         for (String fileName : imageArray) {
             Path copied = Paths.get("C:\\Users\\light\\Pictures\\UploadImage\\"+ turn +"\\" + fileName);
             Path originalPath = Paths.get("C:\\Users\\light\\Pictures\\CostcoImage\\" + fileName);
-            Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                System.out.println(fileName);
+                e.printStackTrace();
+            }
         }
 
     }

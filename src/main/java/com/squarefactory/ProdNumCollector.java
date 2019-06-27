@@ -50,7 +50,7 @@ public class ProdNumCollector implements BatchWorker.Writer<Product>{
                     Category category = new Category(large, medium, small, null);
                     productIds.add(new Product(category, id));
                 }
-                System.out.println(++round);
+                System.out.println(++round + " " + catNum);
             }
 //            System.out.println(dataInput);
             new BatchWorker().batchUpdate(this, productIds);
